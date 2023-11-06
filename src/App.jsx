@@ -17,6 +17,26 @@ function App() {
 
         fetchAll().then(res => {
             const addImageToJsonResponse = res.map((item) => {
+                function wrapText(context, text, x, y, maxWidth, lineHeight) {
+                    var words = text.split(' ');
+                    var line = '';
+
+                    for(var n = 0; n < words.length; n++) {
+                        var testLine = line + words[n] + ' ';
+                        var metrics = context.measureText(testLine);
+                        var testWidth = metrics.width;
+                        if (testWidth > maxWidth && n > 0) {
+                            context.fillText(line, x, y);
+                            line = words[n] + ' ';
+                            y += lineHeight;
+                        }
+                        else {
+                            line = testLine;
+                        }
+                    }
+                    context.fillText(line, x, y);
+                }
+
                 // Create a canvas element
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -34,11 +54,29 @@ function App() {
                 context.font = '24px Arial';
                 context.textAlign = 'center';
 
+                // This code multiline text VV
                 // The text from your JSON
-                const text = item.data.text.arab;
+                [
+                    item.data.text.arab,
+                    item.data.translation.id
+                ].map((text, index) => {
+                    // Calculate the starting Y position
+                    const lineHeight = 30; // The height of each line
+                    const startingY = canvas.height / 2 - (2 * lineHeight) / 2 + lineHeight / 2;
+
+                    const currentY = startingY + index * lineHeight;
+
+                    // Add text to canvas
+                    wrapText(context, text, canvas.width / 2, currentY, canvas.width - 20, lineHeight);
+                });
+                // This code multiline text ^^
+
+                // This code is for single line VV
+                // const text = item.data.text.arab;
 
                 // Add text to canvas
-                context.fillText(text, canvas.width / 2, canvas.height / 2);
+                // context.fillText(text, canvas.width / 2, canvas.height / 2);
+                // This code is for single line ^^
 
                 // Convert canvas to an image
                 const imageUrl = canvas.toDataURL('image/png');
@@ -60,7 +98,7 @@ function App() {
                 return (
                     <div key={index} style={{border: '1px dashed #fff'}}>
                         <p>{d.data.text.arab}</p>
-                        <img src={d.image} width='500px' alt={d.data.text.arab} />
+                        <img src={d.image} alt={d.data.text.arab} />
                     </div>
                 )
           })}
